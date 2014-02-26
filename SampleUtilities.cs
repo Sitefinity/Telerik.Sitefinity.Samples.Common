@@ -796,19 +796,23 @@ namespace Telerik.Sitefinity.Samples.Common
 
         public static IComment CreateBlogPostComment(Guid blogPostId, string message, IAuthor author, string website, string ip)
         {
-            var blogsManager = BlogsManager.GetManager();
-            var blogPost = blogsManager.GetBlogPost(blogPostId);
-            if (blogPost != null)
-            {
-                var cs = SystemManager.GetCommentsService();
-                var groupKey = Guid.NewGuid().ToString();
+            var manager = BlogsManager.GetManager();
 
-                var threadReg = new CreateThreadRegion(cs, key: blogPostId.ToString());
-                var commentProxy = new CommentProxy(message, threadReg.Thread.Key, author, ip);
-                var comment = cs.CreateComment(commentProxy);
-                return comment;
-            }
-            return null;
+            // Get the news item
+            var blogPost = manager.GetBlogPost(blogPostId);
+
+            //Gets an instance of the comment service
+            var cs = SystemManager.GetCommentsService();
+            var language = Thread.CurrentThread.CurrentUICulture.Name;
+            var threadKey = ControlUtilities.GetLocalizedKey(blogPostId, language);
+
+            SampleUtilities.EnsureBlogPostThreadExists(threadKey, author, blogPost.Title, manager, language, cs);
+
+            //new comment is created via the CommentProxy
+            var commentProxy = new CommentProxy(message, threadKey, author, ip) { Status = StatusConstants.Published };
+            var comment = cs.CreateComment(commentProxy);
+
+            return comment;
         }
 
         public static void CreateCampaign(Guid id, Guid bodyId, string name, string fromName, string subject, string replyToMail, bool useGoogleTracking, CampaignState state)
@@ -1445,23 +1449,71 @@ namespace Telerik.Sitefinity.Samples.Common
             return comment;
         }
 
-        public static IComment CreateNewsCommentNativeAPI(Guid masterNewsItemId, string message, IAuthor author, string ip)
+        public static IComment CreateNewsCommentNativeAPI(Guid newsItemId, string message, IAuthor author, string ip)
         {
             NewsManager manager = NewsManager.GetManager();
-            using (new ElevatedModeRegion(manager))
+
+            // Get the news item
+            NewsItem newsItem = manager.GetNewsItem(newsItemId);
+
+            //Gets an instance of the comment service
+            var cs = SystemManager.GetCommentsService();
+            var language = Thread.CurrentThread.CurrentUICulture.Name;
+            var threadKey = ControlUtilities.GetLocalizedKey(newsItemId, language);
+
+            SampleUtilities.EnsureNewsThreadExists(threadKey, author, newsItem.Title, manager, language, cs);
+
+            //new comment is created via the CommentProxy
+            var commentProxy = new CommentProxy(message, threadKey, author, ip) { Status = StatusConstants.Published };
+            var comment = cs.CreateComment(commentProxy);
+
+            return comment;
+        }
+
+        private static void EnsureNewsThreadExists(string threadKey, IAuthor author, string threadTitle, NewsManager manager, string language, ICommentService cs)
+        {
+            ThreadFilter threadFilter = new ThreadFilter();
+            threadFilter.ThreadKey.Add(threadKey);
+            var thread = cs.GetThreads(threadFilter).SingleOrDefault();
+
+            if (thread == null)
             {
-                NewsItem newsItem = manager.GetNewsItems().Where(nI => nI.Id == masterNewsItemId).FirstOrDefault();
+                var groupKey = ControlUtilities.GetUniqueProviderKey(typeof(NewsManager).FullName, manager.Provider.Name);
 
-                if (newsItem != null)
-                {
-                    var cs = SystemManager.GetCommentsService();
+                SampleUtilities.EnsureNewsGroupExists(groupKey, author, cs);
 
-                    var threadReg = new CreateThreadRegion(cs, key: masterNewsItemId.ToString());
-                    var commentProxy = new CommentProxy(message, threadReg.Thread.Key, author, ip);
-                    var comment = cs.CreateComment(commentProxy);
-                    return comment;
-                }
-                return null;
+                var threadProxy = new ThreadProxy(threadTitle, typeof(NewsItem).FullName, groupKey, author) { Language = language, Key = threadKey };
+                thread = cs.CreateThread(threadProxy);
+            }
+        }
+
+        private static void EnsureBlogPostThreadExists(string threadKey, IAuthor author, string threadTitle, BlogsManager manager, string language, ICommentService cs)
+        {
+            ThreadFilter threadFilter = new ThreadFilter();
+            threadFilter.ThreadKey.Add(threadKey);
+            var thread = cs.GetThreads(threadFilter).SingleOrDefault();
+
+            if (thread == null)
+            {
+                var groupKey = ControlUtilities.GetUniqueProviderKey(typeof(BlogsManager).FullName, manager.Provider.Name);
+
+                SampleUtilities.EnsureNewsGroupExists(groupKey, author, cs);
+
+                var threadProxy = new ThreadProxy(threadTitle, typeof(BlogPost).FullName, groupKey, author) { Language = language, Key = threadKey };
+                thread = cs.CreateThread(threadProxy);
+            }
+        }
+
+        private static void EnsureNewsGroupExists(string groupKey, IAuthor author, ICommentService cs)
+        {
+            GroupFilter groupFilter = new GroupFilter();
+            groupFilter.GroupKey.Add(groupKey);
+            var group = cs.GetGroups(groupFilter).SingleOrDefault();
+
+            if (group == null)
+            {
+                var groupProxy = new GroupProxy("Group title", "news items in provider", author) { Key = groupKey };
+                group = cs.CreateGroup(groupProxy);
             }
         }
 
@@ -1631,7 +1683,7 @@ namespace Telerik.Sitefinity.Samples.Common
                     pageData.Description[cultureInfo] = pageName;
 
                     pageNode.ApprovalWorkflowState = SampleUtilities.ApprovalWorkflowStatePublished;
-                    
+
                     pageManager.SaveChanges();
                     pageManager.SetHomePage(pageId);
 
@@ -3730,66 +3782,5 @@ namespace Telerik.Sitefinity.Samples.Common
         public static readonly string DefaultUserPassword = "password";
         public static readonly string DefaultUserFirstName = "Telerik";
         public static readonly string DefaultUserLastName = "Developer";
-    }
-
-    public class CreateThreadRegion : IDisposable
-    {
-        public IThread Thread { get; private set; }
-
-        public CreateThreadRegion(ICommentService service,
-            bool requireApproval = false, bool requireAuthentication = false, string groupKey = null, string language = "en", string key = null)
-        {
-            this.InitializeThread(service, typeof(NewsItem).FullName, requireApproval, requireAuthentication, groupKey, language, key);
-        }
-
-        public CreateThreadRegion(ICommentService service, string threadType,
-            bool requireApproval = false, bool requireAuthentication = false, string groupKey = null, string language = "en", string key = null)
-        {
-            this.InitializeThread(service, threadType, requireApproval, requireAuthentication, groupKey, language, key);
-        }
-
-        private void InitializeThread(ICommentService service, string threadType,
-            bool requireApproval = false, bool requireAuthentication = false, string groupKey = null, string language = "en", string key = null)
-        {
-            this.cs = service;
-            var author = new AuthorProxy(ClaimsManager.GetCurrentUserId().ToString());
-
-            if (groupKey == null)
-            {
-                var groupProxy = new GroupProxy("test name", "TestGroupDescription", author);
-                var group = cs.CreateGroup(groupProxy);
-                groupKey = group.Key;
-                this.deleteGroup = true;
-            }
-
-            var threadProxy = new ThreadProxy("Thread Test Title", threadType, groupKey, author) { Language = language, };
-
-            if (!key.IsNullOrEmpty())
-                threadProxy.Key = key;
-
-            var thread = cs.GetThreads(new ThreadFilter()).FirstOrDefault(); 
-
-            if (thread == null)
-            {
-                this.Thread = cs.CreateThread(threadProxy);
-            }
-            else
-                this.Thread = thread;
-        }
-
-        public void Dispose()
-        {
-            if (deleteGroup)
-            {
-                cs.DeleteGroup(this.Thread.GroupKey);
-            }
-            else
-            {
-                cs.DeleteThread(this.Thread.Key);
-            }
-        }
-
-        private ICommentService cs;
-        private bool deleteGroup;
     }
 }
