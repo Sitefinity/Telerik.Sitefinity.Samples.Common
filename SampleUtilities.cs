@@ -104,9 +104,10 @@ namespace Telerik.Sitefinity.Samples.Common
             if (form != null)
             {
                 controlsCount = form.Controls.Count;
+                return String.Format(form.Name + "_C" + controlsCount.ToString().PadLeft(3, '0'));
             }
 
-            return String.Format(form.Name + "_C" + controlsCount.ToString().PadLeft(3, '0'));
+            return String.Empty;
         }
 
         public static void AddControlToPage(Guid pageId, Control control, string placeHolder, string caption)
@@ -156,24 +157,28 @@ namespace Telerik.Sitefinity.Samples.Common
                     {
                         var control = BuildManager.CreateInstanceFromVirtualPath(controlPath, typeof(UserControl)) as UserControl;
 
-                        if (string.IsNullOrEmpty(control.ID))
+                        if (control != null)
                         {
-                            control.ID = GenerateUniqueControlIdForPage(master, null);
+
+                            if (string.IsNullOrEmpty(control.ID))
+                            {
+                                control.ID = GenerateUniqueControlIdForPage(master, null);
+                            }
+
+                            var pageControl = pageManager.CreateControl<PageDraftControl>();
+                            pageControl.ObjectType = controlPath;
+                            pageControl.PlaceHolder = placeHolder;
+                            pageManager.ReadProperties(control, pageControl);
+                            pageControl.Caption = caption;
+                            pageControl.SiblingId = GetLastControlInPlaceHolderInPageId(master, placeHolder);
+                            pageManager.SetControlDefaultPermissions(pageControl);
+                            master.Controls.Add(pageControl);
+
+                            master = pageManager.PagesLifecycle.CheckIn(master);
+                            master.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
+                            pageManager.PagesLifecycle.Publish(master);
+                            pageManager.SaveChanges();
                         }
-
-                        var pageControl = pageManager.CreateControl<PageDraftControl>(false);
-                        pageControl.ObjectType = controlPath;
-                        pageControl.PlaceHolder = placeHolder;
-                        pageManager.ReadProperties(control, pageControl);
-                        pageControl.Caption = caption;
-                        pageControl.SiblingId = GetLastControlInPlaceHolderInPageId(master, placeHolder);
-                        pageManager.SetControlDefaultPermissions(pageControl);
-                        master.Controls.Add(pageControl);
-
-                        master = pageManager.PagesLifecycle.CheckIn(master);
-                        master.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
-                        pageManager.PagesLifecycle.Publish(master);
-                        pageManager.SaveChanges();
                     }
                 }
             }
@@ -259,26 +264,30 @@ namespace Telerik.Sitefinity.Samples.Common
                 {
                     var control = BuildManager.CreateInstanceFromVirtualPath(controlPath, typeof(UserControl)) as UserControl;
 
-                    if (string.IsNullOrEmpty(control.ID))
+                    if (control != null)
                     {
-                        control.ID = GenerateUniqueControlIdForPage(master, culture);
+
+                        if (string.IsNullOrEmpty(control.ID))
+                        {
+                            control.ID = GenerateUniqueControlIdForPage(master, culture);
+                        }
+
+                        var pageControl = pageManager.CreateControl<PageDraftControl>(false);
+                        pageControl.ObjectType = controlPath;
+                        pageControl.PlaceHolder = placeHolder;
+                        pageManager.ReadProperties(control, pageControl);
+                        pageControl.Caption = caption;
+                        pageControl.SiblingId = GetLastControlInPlaceHolderInPageId(master, placeHolder);
+                        pageManager.SetControlDefaultPermissions(pageControl);
+
+                        master.Controls.Add(pageControl);
+
+                        master = pageManager.PagesLifecycle.CheckIn(master);
+                        master.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
+                        pageManager.PagesLifecycle.Publish(master);
+
+                        pageManager.SaveChanges();
                     }
-
-                    var pageControl = pageManager.CreateControl<PageDraftControl>(false);
-                    pageControl.ObjectType = controlPath;
-                    pageControl.PlaceHolder = placeHolder;
-                    pageManager.ReadProperties(control, pageControl);
-                    pageControl.Caption = caption;
-                    pageControl.SiblingId = GetLastControlInPlaceHolderInPageId(master, placeHolder);
-                    pageManager.SetControlDefaultPermissions(pageControl);
-
-                    master.Controls.Add(pageControl);
-
-                    master = pageManager.PagesLifecycle.CheckIn(master);
-                    master.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
-                    pageManager.PagesLifecycle.Publish(master);
-
-                    pageManager.SaveChanges();
                 }
             }
             Thread.CurrentThread.CurrentUICulture = currentCulture;
@@ -337,24 +346,28 @@ namespace Telerik.Sitefinity.Samples.Common
                     {
                         var control = BuildManager.CreateInstanceFromVirtualPath(controlPath, typeof(UserControl)) as UserControl;
 
-                        if (string.IsNullOrEmpty(control.ID))
+                        if (control != null)
                         {
-                            control.ID = GenerateUniqueControlIdForTemplate(temp);
+
+                            if (string.IsNullOrEmpty(control.ID))
+                            {
+                                control.ID = GenerateUniqueControlIdForTemplate(temp);
+                            }
+
+                            var templateControl = pageManager.CreateControl<TemplateDraftControl>();
+                            templateControl.ObjectType = controlPath;
+                            templateControl.PlaceHolder = placeHolder;
+                            pageManager.ReadProperties(control, templateControl);
+                            templateControl.Caption = caption;
+                            templateControl.SiblingId = GetLastControlInPlaceHolderInTemplateId(temp, placeHolder);
+                            pageManager.SetControlDefaultPermissions(templateControl);
+                            temp.Controls.Add(templateControl);
+
+                            master = pageManager.TemplatesLifecycle.CheckIn(temp);
+                            master.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
+                            pageManager.TemplatesLifecycle.Publish(master);
+                            pageManager.SaveChanges();
                         }
-
-                        var templateControl = pageManager.CreateControl<TemplateDraftControl>(false);
-                        templateControl.ObjectType = controlPath;
-                        templateControl.PlaceHolder = placeHolder;
-                        pageManager.ReadProperties(control, templateControl);
-                        templateControl.Caption = caption;
-                        templateControl.SiblingId = GetLastControlInPlaceHolderInTemplateId(temp, placeHolder);
-                        pageManager.SetControlDefaultPermissions(templateControl);
-                        temp.Controls.Add(templateControl);
-
-                        master = pageManager.TemplatesLifecycle.CheckIn(temp);
-                        master.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
-                        pageManager.TemplatesLifecycle.Publish(master);
-                        pageManager.SaveChanges();
                     }
                 }
             }
@@ -617,13 +630,13 @@ namespace Telerik.Sitefinity.Samples.Common
 
         public static bool CreateLocalizedBlog(Guid blogId, string title, string description, List<string> cultures)
         {
-            var count = 0;
             bool result = false;
             using (var fluent = App.WorkWith())
             {
                 var blogsFacade = fluent.Blogs();
                 using (new ElevatedModeRegion(blogsFacade.GetManager()))
                 {
+                    var count = 0;
                     blogsFacade.Where(b => b.Id == blogId).Count(out count);
 
                     if (count == 0)
@@ -710,19 +723,19 @@ namespace Telerik.Sitefinity.Samples.Common
             var currentCulture = Thread.CurrentThread.CurrentUICulture;
             Thread.CurrentThread.CurrentUICulture = cultureInfo;
 
-            var blogCount = 0;
             using (var fluent = App.WorkWith())
             {
                 var blogsFacade = fluent.Blogs();
                 using (new ElevatedModeRegion(blogsFacade.GetManager()))
                 {
+                    var blogCount = 0;
                     blogsFacade.Where(b => b.Id == parentBlogId).Count(out blogCount);
                     if (blogCount > 0)
                     {
-                        var blogPostCount = 0;
                         var blogPostsFacade = fluent.BlogPosts();
                         using (new ElevatedModeRegion(blogPostsFacade.GetManager()))
                         {
+                            var blogPostCount = 0;
                             blogPostsFacade.Where(p => p.Id == blogPostId).Count(out blogPostCount);
 
                             if (blogPostCount == 0)
@@ -796,23 +809,18 @@ namespace Telerik.Sitefinity.Samples.Common
 
         public static IComment CreateBlogPostComment(Guid blogPostId, string message, IAuthor author, string website, string ip)
         {
-            var manager = BlogsManager.GetManager();
+            var blogsManager = BlogsManager.GetManager();
+            var blogPost = blogsManager.GetBlogPost(blogPostId);
+            if (blogPost != null)
+            {
+                var cs = SystemManager.GetCommentsService();
 
-            // Get the news item
-            var blogPost = manager.GetBlogPost(blogPostId);
-
-            //Gets an instance of the comment service
-            var cs = SystemManager.GetCommentsService();
-            var language = Thread.CurrentThread.CurrentUICulture.Name;
-            var threadKey = ControlUtilities.GetLocalizedKey(blogPostId, language);
-
-            SampleUtilities.EnsureBlogPostThreadExists(threadKey, author, blogPost.Title, manager, language, cs);
-
-            //new comment is created via the CommentProxy
-            var commentProxy = new CommentProxy(message, threadKey, author, ip) { Status = StatusConstants.Published };
-            var comment = cs.CreateComment(commentProxy);
-
-            return comment;
+                var threadReg = new CreateThreadRegion(cs, key: blogPostId.ToString());
+                var commentProxy = new CommentProxy(message, threadReg.Thread.Key, author, ip);
+                var comment = cs.CreateComment(commentProxy);
+                return comment;
+            }
+            return null;
         }
 
         public static void CreateCampaign(Guid id, Guid bodyId, string name, string fromName, string subject, string replyToMail, bool useGoogleTracking, CampaignState state)
@@ -982,12 +990,12 @@ namespace Telerik.Sitefinity.Samples.Common
             var currentCulture = Thread.CurrentThread.CurrentUICulture;
             Thread.CurrentThread.CurrentUICulture = cultureInfo;
 
-            var count = 0;
             using (var fluent = App.WorkWith())
             {
                 var eventsFacade = fluent.Events();
                 using (new ElevatedModeRegion(eventsFacade.GetManager()))
                 {
+                    int count;
                     eventsFacade.Where(e => e.Id == id).Count(out count);
 
                     if (count == 0)
@@ -1071,7 +1079,7 @@ namespace Telerik.Sitefinity.Samples.Common
             var formManager = FormsManager.GetManager();
             using (new ElevatedModeRegion(formManager))
             {
-                var form = formManager.GetForms().Where(f => f.Id == formId).SingleOrDefault();
+                var form = formManager.GetForms().SingleOrDefault(f => f.Id == formId);
                 Guid siblingId = Guid.Empty;
 
                 if (form == null)
@@ -1172,12 +1180,12 @@ namespace Telerik.Sitefinity.Samples.Common
 
             bool result = false;
 
-            var count = 0;
             using (var fluent = App.WorkWith())
             {
                 var listsFacade = fluent.Lists();
                 using (new ElevatedModeRegion(listsFacade.GetManager()))
                 {
+                    int count;
                     listsFacade.Where(l => l.Id == listId).Count(out count);
 
                     if (count == 0)
@@ -1232,20 +1240,20 @@ namespace Telerik.Sitefinity.Samples.Common
 
             Guid itemId = Guid.Empty;
 
-            var listItemCount = 0;
             using (var fluent = App.WorkWith())
             {
                 var listItemsFacade = fluent.ListItems();
                 using (new ElevatedModeRegion(listItemsFacade.GetManager()))
                 {
+                    int listItemCount;
                     listItemsFacade.Where(l => l.Id == listItemId).Count(out listItemCount);
 
                     if (listItemCount == 0)
                     {
-                        var listCount = 0;
                         var listsFacade = fluent.Lists();
                         using (new ElevatedModeRegion(listsFacade.GetManager()))
                         {
+                            int listCount;
                             listsFacade.Where(l => l.Id == parentListId).Count(out listCount);
 
                             if (listCount > 0)
@@ -1361,18 +1369,18 @@ namespace Telerik.Sitefinity.Samples.Common
             CreateLocalizedNewsItem(newsId, newsTitle, newsContent, summary, author, string.Empty, string.Empty, tags, categories, culture);
         }
 
-        public static void CreateLocalizedNewsItem(Guid newsId, string newsTitle, string newsContent, string summary, string author, string sourceName, string sourceURL, List<string> tags, List<string> categories, string culture)
+        public static void CreateLocalizedNewsItem(Guid newsId, string newsTitle, string newsContent, string summary, string author, string sourceName, string sourceUrl, List<string> tags, List<string> categories, string culture)
         {
             var cultureInfo = new CultureInfo(culture);
             var currentCulture = Thread.CurrentThread.CurrentUICulture;
             Thread.CurrentThread.CurrentUICulture = cultureInfo;
 
-            var count = 0;
             using (var fluent = App.WorkWith())
             {
                 var newsItemsFacade = fluent.NewsItems();
                 using (new ElevatedModeRegion(newsItemsFacade.GetManager()))
                 {
+                    int count;
                     newsItemsFacade.Where(n => n.Id == newsId).Count(out count);
 
                     if (count == 0)
@@ -1385,7 +1393,7 @@ namespace Telerik.Sitefinity.Samples.Common
                                 item.DateCreated = DateTime.UtcNow;
                                 item.PublicationDate = DateTime.UtcNow;
                                 item.SourceName = sourceName;
-                                item.SourceSite = sourceURL;
+                                item.SourceSite = sourceUrl;
                                 item.UrlName[cultureInfo] = Regex.Replace(newsTitle.ToLower(), UrlNameCharsToReplace, UrlNameReplaceString);
                                 item.ApprovalWorkflowState.Value = SampleUtilities.ApprovalWorkflowStatePublished;
                             }).Publish().SaveChanges();
@@ -1449,71 +1457,23 @@ namespace Telerik.Sitefinity.Samples.Common
             return comment;
         }
 
-        public static IComment CreateNewsCommentNativeAPI(Guid newsItemId, string message, IAuthor author, string ip)
+        public static IComment CreateNewsCommentNativeAPI(Guid masterNewsItemId, string message, IAuthor author, string ip)
         {
             NewsManager manager = NewsManager.GetManager();
-
-            // Get the news item
-            NewsItem newsItem = manager.GetNewsItem(newsItemId);
-
-            //Gets an instance of the comment service
-            var cs = SystemManager.GetCommentsService();
-            var language = Thread.CurrentThread.CurrentUICulture.Name;
-            var threadKey = ControlUtilities.GetLocalizedKey(newsItemId, language);
-
-            SampleUtilities.EnsureNewsThreadExists(threadKey, author, newsItem.Title, manager, language, cs);
-
-            //new comment is created via the CommentProxy
-            var commentProxy = new CommentProxy(message, threadKey, author, ip) { Status = StatusConstants.Published };
-            var comment = cs.CreateComment(commentProxy);
-
-            return comment;
-        }
-
-        private static void EnsureNewsThreadExists(string threadKey, IAuthor author, string threadTitle, NewsManager manager, string language, ICommentService cs)
-        {
-            ThreadFilter threadFilter = new ThreadFilter();
-            threadFilter.ThreadKey.Add(threadKey);
-            var thread = cs.GetThreads(threadFilter).SingleOrDefault();
-
-            if (thread == null)
+            using (new ElevatedModeRegion(manager))
             {
-                var groupKey = ControlUtilities.GetUniqueProviderKey(typeof(NewsManager).FullName, manager.Provider.Name);
+                NewsItem newsItem = manager.GetNewsItems().Where(nI => nI.Id == masterNewsItemId).FirstOrDefault();
 
-                SampleUtilities.EnsureNewsGroupExists(groupKey, author, cs);
+                if (newsItem != null)
+                {
+                    var cs = SystemManager.GetCommentsService();
 
-                var threadProxy = new ThreadProxy(threadTitle, typeof(NewsItem).FullName, groupKey, author) { Language = language, Key = threadKey };
-                thread = cs.CreateThread(threadProxy);
-            }
-        }
-
-        private static void EnsureBlogPostThreadExists(string threadKey, IAuthor author, string threadTitle, BlogsManager manager, string language, ICommentService cs)
-        {
-            ThreadFilter threadFilter = new ThreadFilter();
-            threadFilter.ThreadKey.Add(threadKey);
-            var thread = cs.GetThreads(threadFilter).SingleOrDefault();
-
-            if (thread == null)
-            {
-                var groupKey = ControlUtilities.GetUniqueProviderKey(typeof(BlogsManager).FullName, manager.Provider.Name);
-
-                SampleUtilities.EnsureNewsGroupExists(groupKey, author, cs);
-
-                var threadProxy = new ThreadProxy(threadTitle, typeof(BlogPost).FullName, groupKey, author) { Language = language, Key = threadKey };
-                thread = cs.CreateThread(threadProxy);
-            }
-        }
-
-        private static void EnsureNewsGroupExists(string groupKey, IAuthor author, ICommentService cs)
-        {
-            GroupFilter groupFilter = new GroupFilter();
-            groupFilter.GroupKey.Add(groupKey);
-            var group = cs.GetGroups(groupFilter).SingleOrDefault();
-
-            if (group == null)
-            {
-                var groupProxy = new GroupProxy("Group title", "news items in provider", author) { Key = groupKey };
-                group = cs.CreateGroup(groupProxy);
+                    var threadReg = new CreateThreadRegion(cs, key: masterNewsItemId.ToString());
+                    var commentProxy = new CommentProxy(message, threadReg.Thread.Key, author, ip);
+                    var comment = cs.CreateComment(commentProxy);
+                    return comment;
+                }
+                return null;
             }
         }
 
@@ -1548,12 +1508,12 @@ namespace Telerik.Sitefinity.Samples.Common
                 parentId = SiteInitializer.CurrentFrontendRootNodeId;
             }
 
-            var count = 0;
             using (var fluent = App.WorkWith())
             {
                 var pagesFacade = fluent.Pages();
                 using (new ElevatedModeRegion(pagesFacade.GetManager()))
                 {
+                    int count;
                     pagesFacade.Where(p => p.Id == pageId).Count(out count);
 
                     if (count == 0)
@@ -1583,11 +1543,6 @@ namespace Telerik.Sitefinity.Samples.Common
                         if (isHomePage)
                         {
                             SystemManager.CurrentContext.CurrentSite.SetHomePage(pageId);
-                            //var pageIdFacade = fluent.Page(pageId);
-                            //using (new ElevatedModeRegion(pageIdFacade.GetManager()))
-                            //{
-                            //    pageIdFacade.SetAsHomePage().SaveChanges();
-                            //}
                         }
 
                         result = true;
@@ -1630,8 +1585,6 @@ namespace Telerik.Sitefinity.Samples.Common
             var pageDataId = Guid.NewGuid();
             using (PageManager pageManager = PageManager.GetManager())
             {
-                PageData pageData = null;
-                PageNode pageNode = null;
                 using (new ElevatedModeRegion(pageManager))
                 {
                     var initialPageNode = pageManager.GetPageNodes().Where(n => n.Id == pageId).SingleOrDefault();
@@ -1643,6 +1596,8 @@ namespace Telerik.Sitefinity.Samples.Common
 
                     result = true;
 
+                    PageData pageData;
+                    PageNode pageNode;
                     if (initialPageNode == null)
                     {
                         var parentId = parentPageId;
@@ -1685,25 +1640,9 @@ namespace Telerik.Sitefinity.Samples.Common
                     pageNode.ApprovalWorkflowState = SampleUtilities.ApprovalWorkflowStatePublished;
 
                     pageManager.SaveChanges();
-                    pageManager.SetHomePage(pageId);
-
+                    SystemManager.CurrentContext.CurrentSite.SetHomePage(pageId);
                 }
             }
-            //using (var fluent = App.WorkWith())
-            //{
-            //    //var pageIdFacade = fluent.Page(pageId);
-            //    var manager = PageManager.GetManager();
-
-            //    using (new ElevatedModeRegion(manager))
-            //    {
-            //        if (isHomePage)
-            //        {
-            //            manager.SetHomePage(pageId);
-            //            manager.SaveChanges();
-            //        }
-            //        //pageIdFacade.Do(p => { p.ApprovalWorkflowState = SampleUtilities.ApprovalWorkflowStatePublished; }).IfStandardPage().CheckOut().Publish().SaveChanges();
-            //    }
-            //}
 
             Thread.CurrentThread.CurrentUICulture = currentCulture;
 
@@ -1721,15 +1660,15 @@ namespace Telerik.Sitefinity.Samples.Common
 
             if (parentId == Guid.Empty)
             {
-                parentId = SiteInitializer.FrontendRootNodeId;
+                parentId = SiteInitializer.CurrentFrontendRootNodeId;
             }
 
-            var count = 0;
             using (var fluent = App.WorkWith())
             {
                 var pagesFacade = fluent.Pages();
                 using (new ElevatedModeRegion(pagesFacade.GetManager()))
                 {
+                    var count = 0;
                     pagesFacade.Where(p => p.Id == pageGroupId).Count(out count);
 
                     if (count == 0)
@@ -1849,22 +1788,30 @@ namespace Telerik.Sitefinity.Samples.Common
             UserManager userManager = UserManager.GetManager();
             using (new ElevatedModeRegion(userManager))
             {
-                User user = userManager.GetUsers().Where(u => u.UserName == username).SingleOrDefault();
+                User user = userManager.GetUsers().SingleOrDefault(u => u.UserName == username);
                 if (user != null)
                 {
                     UserProfileManager profileManager = UserProfileManager.GetManager();
                     using (new ElevatedModeRegion(profileManager))
                     {
-                        SitefinityProfile userProfile = (SitefinityProfile)profileManager.GetUserProfile(user.Id, typeof(SitefinityProfile).FullName);
+                        var userProfile = (SitefinityProfile)profileManager.GetUserProfile(user.Id, typeof(SitefinityProfile).FullName);
                         if (userProfile == null)
                         {
-                            userProfile = profileManager.CreateProfile(user, user.Id, typeof(SitefinityProfile)) as SitefinityProfile;
-                            userProfile.FirstName = firstName;
-                            userProfile.LastName = lastName;
-                            profileManager.SaveChanges();
+                            CreateSitefinityProfile(firstName, lastName, profileManager, user);
                         }
                     }
                 }
+            }
+        }
+
+        private static void CreateSitefinityProfile(string firstName, string lastName, UserProfileManager profileManager, User user)
+        {
+            var userProfile = profileManager.CreateProfile(user, user.Id, typeof(SitefinityProfile)) as SitefinityProfile;
+            if (userProfile != null)
+            {
+                userProfile.FirstName = firstName;
+                userProfile.LastName = lastName;
+                profileManager.SaveChanges();
             }
         }
 
@@ -1900,7 +1847,8 @@ namespace Telerik.Sitefinity.Samples.Common
                         {
                             var info = Config.Get<SecurityConfig>().ApplicationRoles[a];
                             id = info.Id;
-                            if (roleManager.GetRoles().Where(r => r.Id == id).FirstOrDefault() == null)
+                            var role = roleManager.GetRoles().FirstOrDefault(r => r.Id == id);
+                            if (role == null)
                             {
                                 roleManager.CreateRole(info.Id, info.Name);
                             }
@@ -1913,8 +1861,6 @@ namespace Telerik.Sitefinity.Samples.Common
                         roleManager.Provider.SuppressSecurityChecks = false;
                     }
                 }
-
-                //SecurityManager.AuthenticateUser(null, username, password, true);
             }
             return userId;
         }
@@ -1937,42 +1883,39 @@ namespace Telerik.Sitefinity.Samples.Common
         public static Guid CreateUser(string userName, string password, string email, string firstName, string lastName, string passwordQuestion, string passwordAnswer, bool isBackendUser)
         {
             var userManager = UserManager.GetManager();
-            Guid userId = Guid.Empty;
+            Guid userId = Guid.NewGuid();
+
             using (new ElevatedModeRegion(userManager))
             {
                 if (!userManager.UserExists(userName))
                 {
                     userManager.Provider.SuppressSecurityChecks = true;
+                    System.Web.Security.MembershipCreateStatus status;
 
-                    User user = userManager.CreateUser(userName);
-                    userId = user.Id;
-                    user.FirstName = firstName;
-                    user.LastName = lastName;
-                    user.Password = password;
-                    user.Email = email;
-                    user.SetPasswordQuestion(passwordQuestion);
-                    user.PasswordAnswer = passwordAnswer;
-                    user.IsBackendUser = isBackendUser;
-                    user.IsApproved = true;
-                    user.SetCreationDate(DateTime.Now);
+                    User user = userManager.CreateUser(userName, password, email, passwordQuestion, passwordAnswer, isBackendUser, null, out status);
 
-                    UserProfileManager profileManager = UserProfileManager.GetManager();
-                    using (new ElevatedModeRegion(profileManager))
+                    if (status == MembershipCreateStatus.Success)
                     {
-                        SitefinityProfile sfProfile = profileManager.CreateProfile(user, userId, typeof(SitefinityProfile)) as SitefinityProfile;
-
-                        if (sfProfile != null)
+                        UserProfileManager profileManager = UserProfileManager.GetManager();
+                        using (new ElevatedModeRegion(profileManager))
                         {
-                            sfProfile.FirstName = firstName;
-                            sfProfile.LastName = lastName;
+                            var sfProfile =
+                                profileManager.CreateProfile(user, userId, typeof (SitefinityProfile)) as
+                                    SitefinityProfile;
+
+                            if (sfProfile != null)
+                            {
+                                sfProfile.FirstName = firstName;
+                                sfProfile.LastName = lastName;
+                            }
+
+                            profileManager.SaveChanges();
                         }
-
-                        profileManager.SaveChanges();
                     }
-
-                    userManager.SaveChanges();
-                    userManager.Provider.SuppressSecurityChecks = false;
                 }
+
+                userManager.SaveChanges();
+                userManager.Provider.SuppressSecurityChecks = false;
             }
             return userId;
         }
@@ -2024,7 +1967,7 @@ namespace Telerik.Sitefinity.Samples.Common
             var userManager = UserManager.GetManager();
             using (new ElevatedModeRegion(userManager))
             {
-                var user = userManager.GetUsers().Where(u => u.UserName == userName).FirstOrDefault();
+                var user = userManager.GetUsers().FirstOrDefault(u => u.UserName == userName);
                 if (user != null)
                 {
                     userId = user.Id;
@@ -2042,7 +1985,7 @@ namespace Telerik.Sitefinity.Samples.Common
                 foreach (var a in Config.Get<SecurityConfig>().ApplicationRoles.Keys)
                 {
                     var info = Config.Get<SecurityConfig>().ApplicationRoles[a];
-                    if (roleManager.GetRoles().Where(r => r.Id == info.Id).FirstOrDefault() == null)
+                    if (roleManager.GetRoles().FirstOrDefault(r => r.Id == info.Id) == null)
                     {
                         roleManager.CreateRole(info.Id, info.Name);
                     }
@@ -2057,7 +2000,8 @@ namespace Telerik.Sitefinity.Samples.Common
             var roleManager = RoleManager.GetManager();
             using (new ElevatedModeRegion(roleManager))
             {
-                if (roleManager.GetRoles().Where(r => r.Id == id).FirstOrDefault() == null)
+                var role = roleManager.GetRoles().FirstOrDefault(r => r.Id == id);
+                if (role == null)
                 {
                     roleManager.CreateRole(id, roleName);
                 }
@@ -2087,11 +2031,6 @@ namespace Telerik.Sitefinity.Samples.Common
             }
         }
 
-        public static void AuthenticateUser(string userName, string password)
-        {
-            //SecurityManager.AuthenticateUser(null, userName, password, true);
-        }
-
         public static string GetControlTemplateKey(Type controlType, string templateName)
         {
             string templateKey = string.Empty;
@@ -2102,7 +2041,7 @@ namespace Telerik.Sitefinity.Samples.Common
                 var layoutTemplates = pageManager.GetPresentationItems<ControlPresentation>()
                 .Where(t => t.DataType == Presentation.AspNetTemplate);
                 int? totalCount = 0;
-                var filterExpression = String.Format(@"ControlType == ""{0}""", controlType.ToString());
+                var filterExpression = String.Format(@"ControlType == ""{0}""", controlType);
                 layoutTemplates = DataProviderBase.SetExpressions(layoutTemplates, filterExpression, String.Empty, 0, 0, ref totalCount);
 
                 var template = layoutTemplates.Where(t => t.Name == templateName).FirstOrDefault();
@@ -2753,7 +2692,7 @@ namespace Telerik.Sitefinity.Samples.Common
                                 var taxManager = TaxonomyManager.GetManager();
                                 using (new ElevatedModeRegion(taxManager))
                                 {
-                                    var taxon = taxManager.GetTaxa<FlatTaxon>().Where(t => t.Name == tag).SingleOrDefault();
+                                    var taxon = taxManager.GetTaxa<FlatTaxon>().SingleOrDefault(t => t.Name == tag);
                                     if (taxon != null)
                                     {
                                         if (!i.Organizer.TaxonExists("Tags", taxon.Id))
@@ -2862,11 +2801,11 @@ namespace Telerik.Sitefinity.Samples.Common
             var manager = LibrariesManager.GetManager();
             using (new ElevatedModeRegion(manager))
             {
-                var library = manager.GetDocumentLibraries().Where(l => l.Title == libraryName).SingleOrDefault();
+                var library = manager.GetDocumentLibraries().SingleOrDefault(l => l.Title == libraryName);
 
                 if (library == null)
                 {
-                    DirectoryInfo myFolder = new DirectoryInfo(folderPath);
+                    var myFolder = new DirectoryInfo(folderPath);
 
                     library = manager.CreateDocumentLibrary();
                     library.Title = libraryName;
@@ -2896,7 +2835,7 @@ namespace Telerik.Sitefinity.Samples.Common
 
         public static void UploadImages(string folderPath, string albumName)
         {
-            var count = 0;
+            int count;
             var albumsFacade = App.WorkWith().Albums();
             using (new ElevatedModeRegion(albumsFacade.GetManager()))
             {
@@ -2906,7 +2845,7 @@ namespace Telerik.Sitefinity.Samples.Common
             {
                 var albumId = Guid.NewGuid();
 
-                DirectoryInfo myFolder = new DirectoryInfo(folderPath);
+                var myFolder = new DirectoryInfo(folderPath);
                 var albumFacade = App.WorkWith().Album();
                 using (new ElevatedModeRegion(albumsFacade.GetManager()))
                 {
@@ -2936,7 +2875,7 @@ namespace Telerik.Sitefinity.Samples.Common
 
         public static void UploadLocalizedDocuments(string folderPath, string libraryName, Guid libraryId, List<string> cultures)
         {
-            var count = 0;
+            int count;
             var documentLibrariesFacade = App.WorkWith().DocumentLibraries();
             using (new ElevatedModeRegion(documentLibrariesFacade.GetManager()))
             {
@@ -3133,6 +3072,10 @@ namespace Telerik.Sitefinity.Samples.Common
         /// <summary>
         /// Uploads all videos from a folder
         /// </summary>
+        /// <param name="folderPath"></param>
+        /// <param name="libraryName"></param>
+        /// <param name="libraryId"></param>
+        /// <param name="cultures"></param>
         /// <param name="thumbnails">Dictionary with key - the name of the video the thumbnail applies to and value - path to the thumbnail</param>
         /// <returns>True if all videos are successfully uploaded</returns>
         public static bool UploadLocalizedVideos(string folderPath, string libraryName, Guid libraryId, List<string> cultures, Dictionary<string, string> thumbnails = null)
@@ -3147,7 +3090,7 @@ namespace Telerik.Sitefinity.Samples.Common
             var thumbnailKeys = thumbnails != null ? thumbnails.Keys : null;
             if (count == 0)
             {
-                DirectoryInfo myFolder = new DirectoryInfo(folderPath);
+                var myFolder = new DirectoryInfo(folderPath);
 
                 bool libraryCreated = false;
 
@@ -3311,10 +3254,10 @@ namespace Telerik.Sitefinity.Samples.Common
 
         public static string GenerateLayoutTemplate(List<ColumnDetails> columns, string wrapperClass)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (string.IsNullOrEmpty(wrapperClass))
             {
-                sb.AppendFormat("<div runat=\"server\" class=\"sf_cols\">\r\n ", wrapperClass);
+                sb.AppendFormat("<div runat=\"server\" class=\"sf_cols\">\r\n ");
             }
             else
             {
@@ -3382,16 +3325,18 @@ namespace Telerik.Sitefinity.Samples.Common
         private static Guid GetLastControlInPlaceHolderInPageId(PageNode page, string placeHolder)
         {
             var id = Guid.Empty;
-            PageControl control;
 
             var controls = new List<PageControl>(page.Page.Controls.Where(c => c.PlaceHolder == placeHolder));
 
             while (controls.Count > 0)
             {
-                control = controls.Where(c => c.SiblingId == id).SingleOrDefault();
-                id = control.Id;
+                PageControl control = controls.SingleOrDefault(c => c.SiblingId == id);
+                if (control != null)
+                {
+                    id = control.Id;
 
-                controls.Remove(control);
+                    controls.Remove(control);
+                }
             }
 
             return id;
@@ -3424,7 +3369,7 @@ namespace Telerik.Sitefinity.Samples.Common
 
             while (controls.Count > 0)
             {
-                control = controls.Where(c => c.SiblingId == id).SingleOrDefault();
+                control = controls.SingleOrDefault(c => c.SiblingId == id);
                 id = control.Id;
 
                 controls.Remove(control);
@@ -3442,10 +3387,13 @@ namespace Telerik.Sitefinity.Samples.Common
 
             while (controls.Count > 0)
             {
-                control = controls.Where(c => c.SiblingId == id).SingleOrDefault();
-                id = control.Id;
+                control = controls.SingleOrDefault(c => c.SiblingId == id);
+                if (control != null)
+                {
+                    id = control.Id;
 
-                controls.Remove(control);
+                    controls.Remove(control);
+                }
             }
 
             return id;
@@ -3454,16 +3402,18 @@ namespace Telerik.Sitefinity.Samples.Common
         private static Guid GetLastControlInPlaceHolderInTemplateId(PageTemplate template, string placeHolder)
         {
             var id = Guid.Empty;
-            Telerik.Sitefinity.Pages.Model.TemplateControl control;
 
             var controls = new List<Telerik.Sitefinity.Pages.Model.TemplateControl>(template.Controls.Where(c => c.PlaceHolder == placeHolder));
 
             while (controls.Count > 0)
             {
-                control = controls.Where(c => c.SiblingId == id).SingleOrDefault();
-                id = control.Id;
+                Telerik.Sitefinity.Pages.Model.TemplateControl control = controls.SingleOrDefault(c => c.SiblingId == id);
+                if (control != null)
+                {
+                    id = control.Id;
 
-                controls.Remove(control);
+                    controls.Remove(control);
+                }
             }
 
             return id;
@@ -3479,9 +3429,12 @@ namespace Telerik.Sitefinity.Samples.Common
             while (controls.Count > 0)
             {
                 control = controls.Where(c => c.SiblingId == id).SingleOrDefault();
-                id = control.Id;
+                if (control != null)
+                {
+                    id = control.Id;
 
-                controls.Remove(control);
+                    controls.Remove(control);
+                }
             }
 
             return id;
@@ -3592,9 +3545,9 @@ namespace Telerik.Sitefinity.Samples.Common
 
             pipeSettings.ApplicationName = PublishingManager.GetManager().Provider.ApplicationName;
             pipeSettings.ContentTypeName = contentType.FullName;
-            if (Telerik.Sitefinity.Abstractions.AppSettings.CurrentSettings.Multilingual)
+            if (AppSettings.CurrentSettings.Multilingual)
             {
-                pipeSettings.LanguageIds.Add(Telerik.Sitefinity.Abstractions.AppSettings.CurrentSettings.DefaultFrontendLanguage.Name);
+                pipeSettings.LanguageIds.Add(AppSettings.CurrentSettings.DefaultFrontendLanguage.Name);
             }
             pipeSettings.IsInbound = isInbound;
             pipeSettings.IsActive = isActive;
@@ -3643,7 +3596,7 @@ namespace Telerik.Sitefinity.Samples.Common
             {
                 fields.Add(new SimpleDefinitionField()
                 {
-                    Title = ((string.IsNullOrWhiteSpace(metaField.Title)) ? metaField.FieldName : metaField.Title.ToString()),
+                    Title = ((string.IsNullOrWhiteSpace(metaField.Title)) ? metaField.FieldName : metaField.Title),
                     Name = metaField.FieldName,
                     ClrType = TypeResolutionService.ResolveType(metaField.ClrType).FullName,
                     DBType = metaField.DBType,
@@ -3682,10 +3635,12 @@ namespace Telerik.Sitefinity.Samples.Common
 
                         prop.PropertyType.GetMethod("Clear").Invoke(list, null);
 
-                        foreach (var item in property.Value as ICollection)
-                        {
-                            prop.PropertyType.GetMethod("Add").Invoke(list, new[] { item });
-                        }
+                        var collection = property.Value as ICollection;
+                        if (collection != null)
+                            foreach (var item in collection)
+                            {
+                                prop.PropertyType.GetMethod("Add").Invoke(list, new[] { item });
+                            }
                     }
                     else
                     {
@@ -3745,17 +3700,14 @@ namespace Telerik.Sitefinity.Samples.Common
             return result;
         }
 
-        public static bool CreateForumThreadFromPost(Guid forumId, Guid threadId, Guid postId, string Title, string content)
+        public static bool CreateForumThreadFromPost(Guid forumId, Guid threadId, Guid postId, string title, string content)
         {
             bool result = false;
 
             var mgr = ForumsManager.GetManager();
-            //using (new ElevatedModeRegion(mgr))
-            //{
-            // create the thread
             ForumThread thread = mgr.CreateThread(threadId);
-            thread.Title = Title;
-            thread.UrlName = Regex.Replace(Title.ToLower(), @"[^\w\-\!\$\'\(\)\=\@\d_]+", "-");
+            thread.Title = title;
+            thread.UrlName = Regex.Replace(title.ToLower(), @"[^\w\-\!\$\'\(\)\=\@\d_]+", "-");
             thread.Forum = mgr.GetForum(forumId);
             thread.LastModified = DateTime.UtcNow;
             thread.IsPublished = true;
@@ -3763,14 +3715,13 @@ namespace Telerik.Sitefinity.Samples.Common
 
             // create the first post
             ForumPost post = mgr.CreatePost(postId);
-            post.Title = Title;
+            post.Title = title;
             post.Thread = thread;
             post.Content = content;
             post.LastModified = DateTime.UtcNow;
             post.IsPublished = true;
 
             mgr.SaveChanges();
-            //}
 
             return result;
         }
@@ -3782,5 +3733,66 @@ namespace Telerik.Sitefinity.Samples.Common
         public static readonly string DefaultUserPassword = "password";
         public static readonly string DefaultUserFirstName = "Telerik";
         public static readonly string DefaultUserLastName = "Developer";
+    }
+
+    public class CreateThreadRegion : IDisposable
+    {
+        public IThread Thread { get; private set; }
+
+        public CreateThreadRegion(ICommentService service,
+            bool requireApproval = false, bool requireAuthentication = false, string groupKey = null, string language = "en", string key = null)
+        {
+            this.InitializeThread(service, typeof(NewsItem).FullName, requireApproval, requireAuthentication, groupKey, language, key);
+        }
+
+        public CreateThreadRegion(ICommentService service, string threadType,
+            bool requireApproval = false, bool requireAuthentication = false, string groupKey = null, string language = "en", string key = null)
+        {
+            this.InitializeThread(service, threadType, requireApproval, requireAuthentication, groupKey, language, key);
+        }
+
+        private void InitializeThread(ICommentService service, string threadType,
+            bool requireApproval = false, bool requireAuthentication = false, string groupKey = null, string language = "en", string key = null)
+        {
+            this.cs = service;
+            var author = new AuthorProxy(ClaimsManager.GetCurrentUserId().ToString());
+
+            if (groupKey == null)
+            {
+                var groupProxy = new GroupProxy("test name", "TestGroupDescription", author);
+                var group = cs.CreateGroup(groupProxy);
+                groupKey = group.Key;
+                this.deleteGroup = true;
+            }
+
+            var threadProxy = new ThreadProxy("Thread Test Title", threadType, groupKey, author) { Language = language, };
+
+            if (!key.IsNullOrEmpty())
+                threadProxy.Key = key;
+
+            var thread = cs.GetThreads(new ThreadFilter()).FirstOrDefault();
+
+            if (thread == null)
+            {
+                this.Thread = cs.CreateThread(threadProxy);
+            }
+            else
+                this.Thread = thread;
+        }
+
+        public void Dispose()
+        {
+            if (deleteGroup)
+            {
+                cs.DeleteGroup(this.Thread.GroupKey);
+            }
+            else
+            {
+                cs.DeleteThread(this.Thread.Key);
+            }
+        }
+
+        private ICommentService cs;
+        private bool deleteGroup;
     }
 }
