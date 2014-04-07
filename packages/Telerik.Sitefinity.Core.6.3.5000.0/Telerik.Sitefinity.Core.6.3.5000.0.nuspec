@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Telerik.Sitefinity.Core</id>
+    <version>6.3.5000.0</version>
+    <authors>Telerik</authors>
+    <owners>Telerik</owners>
+    <licenseUrl>http://www.sitefinity.com/purchase/license-agreement</licenseUrl>
+    <iconUrl>http://www.sitefinity.com/favicon.ico</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Sitefinity core libraries.</description>
+    <references>
+      <reference file="Telerik.Sitefinity.dll" />
+      <reference file="Telerik.Sitefinity.Model.dll" />
+      <reference file="Telerik.Sitefinity.Personalization.dll" />
+      <reference file="Telerik.Sitefinity.Search.dll" />
+      <reference file="Telerik.Sitefinity.Services.Comments.dll" />
+      <reference file="Telerik.Sitefinity.Services.Documents.dll" />
+      <reference file="Telerik.Sitefinity.Services.Events.dll" />
+      <reference file="Telerik.Sitefinity.Services.Notifications.dll" />
+      <reference file="Telerik.Sitefinity.Services.Statistics.dll" />
+      <reference file="Telerik.Sitefinity.Utilities.dll" />
+    </references>
+  </metadata>
+</package>
