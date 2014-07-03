@@ -3714,7 +3714,7 @@ namespace Telerik.Sitefinity.Samples.Common
             var mgr = ForumsManager.GetManager();
             using (new ElevatedModeRegion(mgr))
             {
-                var thread = mgr.GetThread(threadId);
+                var thread = mgr.GetThreads().FirstOrDefault(t => t.Id == threadId);
 
                 if (thread == null)
                 {
