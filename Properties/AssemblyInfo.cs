@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Telerik AD")]
 [assembly: AssemblyProduct("Telerik.Sitefinity.Samples.Common")]
-[assembly: AssemblyCopyright("Copyright © Telerik AD 2015")]
+[assembly: AssemblyCopyright("Copyright © 2005-2016 Telerik AD")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
