@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Progress")]
 [assembly: AssemblyProduct("Progress Sitefinity CMS")]
-[assembly: AssemblyCopyright("© 2016 Telerik AD. All rights reserved.")]
+[assembly: AssemblyCopyright("© 2017 Telerik AD. All rights reserved.")]
 [assembly: AssemblyTrademark("Sitefinity")]
 [assembly: AssemblyCulture("")]
 
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("10.0.6400.0")]
-[assembly: AssemblyFileVersion("10.0.6400.0")]
+[assembly: AssemblyVersion("10.1.6500.0")]
+[assembly: AssemblyFileVersion("10.1.6500.0")]
