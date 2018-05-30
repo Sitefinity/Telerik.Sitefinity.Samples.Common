@@ -2,3 +2,6 @@ bin/Debug/
 obj/Debug/
 packages/
 .nuget/NuGet.exe
+/.vs/Telerik.Sitefinity.Samples.Common/v15
+/StyleCop.Cache
+/.vs/config
