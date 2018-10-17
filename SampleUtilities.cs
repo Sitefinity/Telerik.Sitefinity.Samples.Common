@@ -2538,7 +2538,13 @@ namespace Telerik.Sitefinity.Samples.Common
             }
         }
 
+        [Obsolete("Social Sharing is deprecated as of Sitefinity v.11.1")]
         public static void RegisterNewsFrontendDetailsView(string contentViewControlName, string templateKey, Type viewType, string viewName, bool enableSocialSharing)
+        {
+            RegisterNewsFrontendDetailsView(contentViewControlName, templateKey, viewType, viewName);
+        }
+
+        public static void RegisterNewsFrontendDetailsView(string contentViewControlName, string templateKey, Type viewType, string viewName)
         {
             var configManager = ConfigManager.GetManager();
             using (new ElevatedModeRegion(configManager))
@@ -2553,7 +2559,6 @@ namespace Telerik.Sitefinity.Samples.Common
                     definition.TemplateKey = templateKey;
                     definition.ViewName = viewName;
                     definition.ViewType = viewType;
-                    definition.EnableSocialSharing = enableSocialSharing;
 
                     definition.ResourceClassId = "NewsResources";
                     control.ViewsConfig.Add(definition);
