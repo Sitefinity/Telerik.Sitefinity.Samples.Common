@@ -6,3 +6,4 @@ packages/
 /StyleCop.Cache
 /.vs/config
 /.vs
+/obj/Release
